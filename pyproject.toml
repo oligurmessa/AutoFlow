@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "autoflow"
+version = "0.1.0"
+description = "Automate repetitive desktop tasks with simple YAML workflows."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "pyautogui>=0.9.54",
+    "opencv-python>=4.8",  # needed for image matching with `confidence`
+    "pillow>=10.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Desktop Environment",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/autoflow"]
