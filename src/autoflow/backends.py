@@ -30,6 +30,68 @@ class Backend(Protocol):
     def screenshot(self, path: Path) -> None: ...
 
 
+class PyAutoGUIBackend:
+    """Controls the real desktop through pyautogui."""
+
+    def __init__(self) -> None:
+        # Imported here, not at the top of the file: pyautogui needs a display,
+        # and we don't want `autoflow validate` or the tests to require one.
+        import pyautogui
+
+        self._gui = pyautogui
+        # Slam the mouse into a screen corner to abort a runaway workflow.
+        pyautogui.FAILSAFE = True
+        pyautogui.PAUSE = 0.05
+        self._scale: float | None = None
+
+    def open_app(self, name: str) -> None:
+        platform.open_app(name)
+
+    def press(self, key: str, presses: int = 1) -> None:
+        self._gui.press(key, presses=presses)
+
+    def hotkey(self, *keys: str) -> None:
+        self._gui.hotkey(*keys)
+
+    def write(self, text: str, interval: float = 0.0) -> None:
+        self._gui.write(text, interval=interval)
+
+    def click(self, x: int, y: int, clicks: int = 1, button: str = "left") -> None:
+        self._gui.click(x, y, clicks=clicks, button=button)
+
+    def move_to(self, x: int, y: int) -> None:
+        self._gui.moveTo(x, y, duration=0.2)
+
+    def scroll(self, amount: int) -> None:
+        self._gui.scroll(amount)
+
+    def locate_center(self, image: Path, confidence: float) -> Point | None:
+        try:
+            box = self._gui.locateOnScreen(str(image), confidence=confidence)
+        except self._gui.ImageNotFoundException:
+            # Newer pyautogui versions raise instead of returning None.
+            return None
+        if box is None:
+            return None
+        x, y = self._gui.center(box)
+        scale = self._retina_scale()
+        return round(x / scale), round(y / scale)
+
+    def screenshot(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._gui.screenshot(str(path))
+
+    def _retina_scale(self) -> float:
+        """Screenshots are in physical pixels, clicks are in logical points.
+
+        On a Retina Mac the screenshot is twice as wide as the "screen size",
+        so a match found at pixel (800, 600) must be clicked at (400, 300).
+        """
+        if self._scale is None:
+            shot_width = self._gui.screenshot().width
+            screen_width = self._gui.size().width
+            self._scale = shot_width / screen_width if screen_width else 1.0
+        return self._scale
 
 
 @dataclass
