@@ -1,0 +1,140 @@
+"""Every step type a workflow can use.
+
+To add a new action, write a function whose first parameter is the run
+Context and decorate it with @action("name"). Its other parameters become
+the options a workflow can pass, and its type hints are used to validate
+workflow files before anything runs. Nothing else needs to change.
+"""
+
+from __future__ import annotations
+
+import inspect
+import logging
+import time
+import types
+import typing
+import webbrowser
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from .backends import Backend, Point
+from .errors import ImageNotFound, StepFailed
+
+log = logging.getLogger("autoflow")
+
+
+@dataclass
+class Context:
+    """Everything an action needs while a workflow runs."""
+
+    backend: Backend
+    base_dir: Path = field(default_factory=Path.cwd)
+    default_timeout: float = 10.0
+    default_confidence: float = 0.8
+    poll_interval: float = 0.5
+    # Injected so tests can fake time instead of really sleeping.
+    sleep: Callable[[float], None] = time.sleep
+    clock: Callable[[], float] = time.monotonic
+
+    def resolve(self, path: str) -> Path:
+        """Paths in a workflow are relative to the workflow file, not the shell."""
+        p = Path(path).expanduser()
+        return p if p.is_absolute() else self.base_dir / p
+
+
+@dataclass(frozen=True)
+class ActionSpec:
+    name: str
+    func: Callable[..., Any]
+    summary: str
+    params: dict[str, inspect.Parameter]
+    hints: dict[str, Any]
+
+    @property
+    def primary(self) -> str | None:
+        """The parameter that a short form like `- press: enter` fills in."""
+        return next(iter(self.params), None)
+
+    @property
+    def required(self) -> list[str]:
+        return [n for n, p in self.params.items() if p.default is inspect.Parameter.empty]
+
+    def signature(self) -> str:
+        parts = []
+        for name, param in self.params.items():
+            if param.default is inspect.Parameter.empty:
+                parts.append(name)
+            else:
+                parts.append(f"{name}={param.default!r}")
+        return f"{self.name}({', '.join(parts)})"
+
+
+REGISTRY: dict[str, ActionSpec] = {}
+
+
+def action(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Register a function as a workflow action."""
+
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        params = dict(inspect.signature(func).parameters)
+        params.pop(next(iter(params)))  # drop the Context parameter
+        hints = typing.get_type_hints(func)
+        summary = (inspect.getdoc(func) or "").splitlines()[0] if func.__doc__ else ""
+        REGISTRY[name] = ActionSpec(name, func, summary, params, hints)
+        return func
+
+    return decorator
+
+
+
+
+
+
+# --------------------------------------------------------------------------
+# Apps and waiting
+# --------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+# --------------------------------------------------------------------------
+# Keyboard
+# --------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+# --------------------------------------------------------------------------
+# Mouse
+# --------------------------------------------------------------------------
+
+BUTTONS = ("left", "right", "middle")
+
+
+
+
+
+
+
+
+# --------------------------------------------------------------------------
+# Screen
+# --------------------------------------------------------------------------
+
+
+
+
+
+
