@@ -104,6 +104,11 @@ def open_app(ctx: Context, app: str, wait: float = 2.0) -> None:
     ctx.sleep(wait)
 
 
+@action("open_url")
+def open_url(ctx: Context, url: str) -> None:
+    """Open a web page in the default browser."""
+    if not webbrowser.open(url):
+        raise StepFailed(f"no browser could open {url}")
 
 
 @action("wait")
@@ -112,6 +117,10 @@ def wait(ctx: Context, seconds: float) -> None:
     ctx.sleep(seconds)
 
 
+@action("log")
+def log_message(ctx: Context, message: str) -> None:
+    """Print a message to the run log."""
+    log.info("  %s", message)
 
 
 # --------------------------------------------------------------------------
