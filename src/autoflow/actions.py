@@ -128,8 +128,16 @@ def log_message(ctx: Context, message: str) -> None:
 # --------------------------------------------------------------------------
 
 
+@action("type")
+def type_text(ctx: Context, text: str, interval: float = 0.02) -> None:
+    """Type text as if on the keyboard."""
+    ctx.backend.write(text, interval=interval)
 
 
+@action("press")
+def press(ctx: Context, key: str, times: int = 1) -> None:
+    """Press a single key such as enter, tab, esc, up or f5."""
+    ctx.backend.press(key, presses=times)
 
 
 
