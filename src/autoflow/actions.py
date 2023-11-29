@@ -97,10 +97,19 @@ def action(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
 # --------------------------------------------------------------------------
 
 
+@action("open_app")
+def open_app(ctx: Context, app: str, wait: float = 2.0) -> None:
+    """Open (or bring to the front) an application by name."""
+    ctx.backend.open_app(app)
+    ctx.sleep(wait)
 
 
 
 
+@action("wait")
+def wait(ctx: Context, seconds: float) -> None:
+    """Pause for a fixed number of seconds. Prefer wait_for_image when you can."""
+    ctx.sleep(seconds)
 
 
 
