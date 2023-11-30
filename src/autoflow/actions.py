@@ -140,6 +140,11 @@ def press(ctx: Context, key: str, times: int = 1) -> None:
     ctx.backend.press(key, presses=times)
 
 
+@action("hotkey")
+def hotkey(ctx: Context, keys: str | list[str]) -> None:
+    """Press a key combination, e.g. "command+space" or [ctrl, shift, t]."""
+    parts = keys.split("+") if isinstance(keys, str) else keys
+    ctx.backend.hotkey(*(k.strip().lower() for k in parts))
 
 
 # --------------------------------------------------------------------------
