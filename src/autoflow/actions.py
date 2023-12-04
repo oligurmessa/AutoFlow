@@ -154,6 +154,12 @@ def hotkey(ctx: Context, keys: str | list[str]) -> None:
 BUTTONS = ("left", "right", "middle")
 
 
+@action("click")
+def click(ctx: Context, x: int, y: int, clicks: int = 1, button: str = "left") -> None:
+    """Click at fixed screen coordinates."""
+    if button not in BUTTONS:
+        raise StepFailed(f"button must be one of {', '.join(BUTTONS)}")
+    ctx.backend.click(x, y, clicks=clicks, button=button)
 
 
 
