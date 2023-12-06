@@ -162,8 +162,16 @@ def click(ctx: Context, x: int, y: int, clicks: int = 1, button: str = "left") -
     ctx.backend.click(x, y, clicks=clicks, button=button)
 
 
+@action("move_to")
+def move_to(ctx: Context, x: int, y: int) -> None:
+    """Move the mouse to fixed screen coordinates."""
+    ctx.backend.move_to(x, y)
 
 
+@action("scroll")
+def scroll(ctx: Context, amount: int) -> None:
+    """Scroll the mouse wheel; positive is up, negative is down."""
+    ctx.backend.scroll(amount)
 
 
 # --------------------------------------------------------------------------
