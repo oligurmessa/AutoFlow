@@ -179,6 +179,31 @@ def scroll(ctx: Context, amount: int) -> None:
 # --------------------------------------------------------------------------
 
 
+@action("wait_for_image")
+def wait_for_image(
+    ctx: Context,
+    image: str,
+    timeout: float | None = None,
+    confidence: float | None = None,
+) -> Point:
+    """Wait until a screenshot snippet appears on screen, and return its centre."""
+    path = ctx.resolve(image)
+    if not path.is_file():
+        raise StepFailed(f"image file not found: {path}")
+    timeout = ctx.default_timeout if timeout is None else timeout
+    confidence = ctx.default_confidence if confidence is None else confidence
+
+    deadline = ctx.clock() + timeout
+    while True:
+        point = ctx.backend.locate_center(path, confidence)
+        if point is not None:
+            return point
+        if ctx.clock() >= deadline:
+            raise ImageNotFound(
+                f"{image} did not appear within {timeout:g}s "
+                f"(try a tighter crop or a lower confidence than {confidence:g})"
+            )
+        ctx.sleep(ctx.poll_interval)
 
 
 
