@@ -88,8 +88,33 @@ def action(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     return decorator
 
 
+def matches_type(value: Any, hint: Any) -> bool:
+    """A small runtime type check for the types used by actions."""
+    if hint is Any:
+        return True
+    origin = typing.get_origin(hint)
+    if origin in (typing.Union, types.UnionType):
+        return any(matches_type(value, arg) for arg in typing.get_args(hint))
+    if origin is list:
+        (item,) = typing.get_args(hint) or (Any,)
+        return isinstance(value, list) and all(matches_type(v, item) for v in value)
+    if hint is type(None):
+        return value is None
+    if hint is float:
+        # YAML reads `2` as an int; that is fine where a float is expected.
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if hint is int:
+        return isinstance(value, int) and not isinstance(value, bool)
+    return isinstance(value, hint)
 
 
+def type_name(hint: Any) -> str:
+    origin = typing.get_origin(hint)
+    if origin in (typing.Union, types.UnionType):
+        return " or ".join(type_name(a) for a in typing.get_args(hint))
+    if origin is list:
+        return f"list of {type_name(typing.get_args(hint)[0])}"
+    return getattr(hint, "__name__", str(hint))
 
 
 # --------------------------------------------------------------------------
