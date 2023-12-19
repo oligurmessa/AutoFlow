@@ -206,5 +206,22 @@ def wait_for_image(
         ctx.sleep(ctx.poll_interval)
 
 
+@action("click_image")
+def click_image(
+    ctx: Context,
+    image: str,
+    timeout: float | None = None,
+    confidence: float | None = None,
+    clicks: int = 1,
+    offset_x: int = 0,
+    offset_y: int = 0,
+) -> None:
+    """Wait for an image to appear, then click its centre (plus an optional offset)."""
+    x, y = wait_for_image(ctx, image, timeout=timeout, confidence=confidence)
+    ctx.backend.click(x + offset_x, y + offset_y, clicks=clicks)
 
 
+@action("screenshot")
+def screenshot(ctx: Context, path: str) -> None:
+    """Save a screenshot of the whole screen."""
+    ctx.backend.screenshot(ctx.resolve(path))
