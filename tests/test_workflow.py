@@ -63,7 +63,35 @@ def test_missing_images_are_resolved_relative_to_the_file(tmp_path):
     assert load_workflow(path).missing_images() == [tmp_path / "gone.png"]
 
 
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("steps: [{tpye: hi}]", "Did you mean 'type'?"),
+        ("steps: [{click: {x: 1}}]", "missing required option(s): y"),
+        ("steps: [{wait: soon}]", "wait.seconds should be float"),
+        ("steps: [{press: {key: a, force: 2}}]", "unknown option(s) force"),
+        ("steps: [{press: a, type: b}]", "exactly one action"),
+        ("steps: [{press: a, retries: -1}]", "`retries` must be"),
+        ("steps: [{type: '{{ nope }}'}]", "unknown variable {{ nope }}"),
+        ("steps: [{type: {{ nope }}}]", "put quotes around values"),
+        ("steps: []", "non-empty list"),
+        ("name: x", "non-empty list"),
+        ("stepz: [{press: a}]", "unknown top-level key(s): stepz"),
+        ("- just a list", "must be a mapping"),
+    ],
+)
+def test_invalid_workflows_explain_the_problem(text, message):
+    with pytest.raises(WorkflowError) as err:
+        parse_workflow(text, source="flow.yaml")
+    assert message in str(err.value)
+    assert str(err.value).startswith("flow.yaml")
 
 
+def test_error_points_at_the_step_number():
+    with pytest.raises(WorkflowError, match="step 3"):
+        parse_workflow("steps: [{press: a}, {press: b}, {nope: c}]")
 
 
+def test_unreadable_file(tmp_path):
+    with pytest.raises(WorkflowError, match="cannot read file"):
+        load_workflow(tmp_path / "missing.yaml")
