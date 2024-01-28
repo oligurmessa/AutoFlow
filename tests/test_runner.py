@@ -62,5 +62,32 @@ steps:
     assert backend.calls[-1] == ("write", "still typed")
 
 
+def test_dry_run_touches_nothing(ctx, backend, clock, tmp_path):
+    wf = parse_workflow("steps: [{open_app: Spotify}, {type: hi}, {wait: 5}]")
+    result = make_runner(ctx, tmp_path, dry_run=True).run(wf)
+    assert result.ok
+    assert backend.calls == []
+    assert clock.sleeps == []
 
 
+def test_failsafe_is_never_retried(ctx, tmp_path):
+    class FailSafeException(Exception):
+        pass
+
+    attempts = []
+
+    @action("_explode")
+    def explode(ctx) -> None:
+        """Test-only action."""
+        attempts.append(1)
+        raise FailSafeException("corner")
+
+    try:
+        wf = parse_workflow("steps: [{_explode: null, retries: 5}]")
+        result = make_runner(ctx, tmp_path).run(wf)
+    finally:
+        del REGISTRY["_explode"]
+
+    assert not result.ok
+    assert "failsafe" in result.failed.error
+    assert len(attempts) == 1
