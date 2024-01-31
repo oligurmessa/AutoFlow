@@ -1,0 +1,22 @@
+# The original AutoFlow script, rewritten as a workflow.
+# Before running: take a screenshot of Spotify's search box and save it as
+# flows/images/spotify_search.png (see docs/writing-workflows.md).
+name: Play a song on Spotify
+description: Opens Spotify, searches for a song and plays the top result.
+
+vars:
+  song: My 1st Song
+
+steps:
+  - open_app: Spotify
+
+  - name: Click the search box
+    click_image:
+      image: images/spotify_search.png
+      timeout: 20          # Spotify can be slow to start
+    retries: 1
+
+  - hotkey: command+a      # clear any previous search
+  - type: "{{ song }}"
+  - press: enter
+  - log: "Searched Spotify for {{ song }}"
