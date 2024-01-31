@@ -1,0 +1,15 @@
+# macOS example: creates a new TextEdit document with a daily note template.
+# Uses no images, so it works right away.
+name: Daily note
+description: Opens a new TextEdit document with today's note template.
+
+vars:
+  focus: Finish the AutoFlow README
+
+steps:
+  - open_app: { app: TextEdit, wait: 2 }
+  - hotkey: command+n
+  - wait: 0.5
+  - type: "Daily note - {{ today }} {{ time }}\n\n"
+  - type: "Main focus: {{ focus }}\n\n"
+  - type: "Done:\n- \n\nBlocked on:\n- \n"
