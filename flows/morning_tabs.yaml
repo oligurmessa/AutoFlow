@@ -1,0 +1,9 @@
+# Cross-platform example: opens the pages you check every morning.
+name: Morning tabs
+description: Opens a set of web pages in the default browser.
+
+steps:
+  - open_url: https://calendar.google.com
+  - open_url: https://mail.google.com
+  - open_url: https://github.com/notifications
+  - open_url: https://news.ycombinator.com
