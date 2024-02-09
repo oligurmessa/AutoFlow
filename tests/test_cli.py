@@ -37,8 +37,25 @@ def test_validate_with_no_files(tmp_path):
     assert main(["validate", str(tmp_path)]) == EXIT_INVALID
 
 
+def test_dry_run_shows_rendered_steps(tmp_path, caplog):
+    flow = write(
+        tmp_path,
+        "f.yaml",
+        """
+name: Greeting
+vars: { who: World }
+steps:
+  - type: "Hello {{ who }}"
+""",
+    )
+    assert main(["run", str(flow), "--dry-run", "--var", "who=Class"]) == EXIT_OK
+    assert "type(text='Hello Class')" in caplog.text
 
 
+def test_run_refuses_to_start_when_images_are_missing(tmp_path, caplog):
+    flow = write(tmp_path, "f.yaml", "steps: [{click_image: missing.png}]")
+    assert main(["run", str(flow), "--countdown", "0"]) == EXIT_INVALID
+    assert "image not found" in caplog.text
 
 
 
