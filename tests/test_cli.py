@@ -58,7 +58,19 @@ def test_run_refuses_to_start_when_images_are_missing(tmp_path, caplog):
     assert "image not found" in caplog.text
 
 
+def test_invalid_workflow_exit_code(tmp_path):
+    flow = write(tmp_path, "f.yaml", "steps: [{type: '{{ nope }}'}]")
+    assert main(["run", str(flow), "--dry-run"]) == EXIT_INVALID
 
 
+def test_bad_var_syntax(tmp_path):
+    flow = write(tmp_path, "f.yaml", "steps: [{press: a}]")
+    with pytest.raises(SystemExit):
+        main(["run", str(flow), "--var", "novalue"])
 
 
+def test_actions_lists_everything(capsys):
+    assert main(["actions"]) == EXIT_OK
+    out = capsys.readouterr().out
+    for name in ("click_image", "wait_for_image", "hotkey", "type", "open_app"):
+        assert name in out
