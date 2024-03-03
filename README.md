@@ -82,3 +82,48 @@ Exit codes: `0` success, `1` a step failed, `2` the workflow is invalid.
 
 To write your own, read [docs/writing-workflows.md](docs/writing-workflows.md).
 
+## How it works
+
+```
+ YAML file ──► workflow.py ──► Runner ──► actions.py ──► Backend
+               parse, render            one function      PyAutoGUIBackend (real)
+               {{ vars }},              per step type     FakeBackend (tests)
+               validate
+```
+
+[docs/architecture.md](docs/architecture.md) explains each part and walks through adding a new action.
+
+## Project layout
+
+```
+src/autoflow/
+  cli.py        command-line interface
+  workflow.py   YAML loading, variables, validation
+  runner.py     runs steps: retries, optional steps, failure screenshots
+  actions.py    every step type, registered with @action
+  backends.py   the only code that touches the real mouse/keyboard/screen
+  platform.py   OS-specific app launching
+tests/          pytest suite (fake backend, fake clock)
+flows/          example workflows
+docs/           guides
+```
+
+## Development
+
+```bash
+pytest                 # run the tests
+ruff check .           # lint
+ruff format .          # auto-format
+```
+
+## Roadmap
+
+- [ ] `autoflow capture NAME`: take a screenshot snippet by selecting an area
+- [ ] Conditional steps (`if_image: ...`) and simple loops
+- [ ] `run_workflow:` step to reuse one workflow inside another
+- [ ] Record mode that turns your clicks into a draft workflow
+- [ ] Optional: describe a task in plain English and have an LLM draft the YAML for you to review
+
+## License
+
+[Boost Software License 1.0](LICENSE)
